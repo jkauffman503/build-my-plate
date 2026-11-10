@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Build my plate</title>
+<style>
+:root{
+  --bg:#FFF9EF;--surface:#FFFFFF;--ink:#2B2A33;--muted:#6B6878;--line:#E9E2D3;
+  --p:#E5484D;--c:#F2A516;--f:#3B82F6;--d:#9B5DE5;--ok:#2F9E6B;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1D1B24;--surface:#2A2733;--ink:#F4F1FA;--muted:#A8A4B8;--line:#3C3848;
+  --p:#FF6B70;--c:#FFC14D;--f:#6AA3FF;--d:#B987F5;--ok:#4CC38A;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1D1B24;--surface:#2A2733;--ink:#F4F1FA;--muted:#A8A4B8;--line:#3C3848;--p:#FF6B70;--c:#FFC14D;--f:#6AA3FF;--d:#B987F5;--ok:#4CC38A;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Baloo 2","Nunito","Trebuchet MS",system-ui,sans-serif;line-height:1.35}
+main{max-width:960px;margin:0 auto;padding:16px 14px 40px}
+h1{font-size:30px;margin:4px 0 2px;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:0 0 14px}
+.tabs{display:flex;gap:8px;margin-bottom:12px}
+.tab{flex:1;border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:10px 6px;font:inherit;font-weight:700;font-size:16px;cursor:pointer}
+.tab[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px;color:var(--muted);margin:0 0 12px}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.p{background:var(--p)}.c{background:var(--c)}.f{background:var(--f)}.d{background:var(--d)}
+h2{font-size:19px;margin:18px 0 8px}
+.hint{font-weight:400;color:var(--muted);font-size:15px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.item{position:relative;text-align:left;border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:16px;padding:10px 10px 12px;font:inherit;cursor:pointer;min-height:92px}
+.item .e{font-size:30px;display:block}
+.item .n{font-weight:700;font-size:15px;display:block;margin:2px 0 6px}
+.item .dots{display:flex;gap:4px}
+.item .dots i{width:30px;height:8px;border-radius:4px}
+.item[aria-pressed="true"]{border-color:var(--ok);box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 30%,transparent)}
+.item[aria-pressed="true"]::after{content:"✓";position:absolute;top:6px;right:8px;color:var(--ok);font-weight:800;font-size:20px}
+.item:disabled{opacity:.45;cursor:not-allowed}
+.item:focus-visible,.tab:focus-visible,.btn:focus-visible{outline:3px solid var(--f);outline-offset:2px}
+.lock{background:var(--surface);border:2px dashed var(--line);border-radius:14px;padding:10px 12px;color:var(--muted);margin-bottom:10px}
+.lock.open{border-color:var(--ok);color:var(--ok);border-style:solid}
+.plate{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:14px;margin-top:20px}
+.bars{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}
+.bar{border-radius:12px;padding:8px 6px;text-align:center;font-weight:700;font-size:14px;border:2px solid var(--line);color:var(--muted)}
+.bar.on{color:#1d1b24;border-color:transparent}
+.bar.on.p{background:var(--p)}.bar.on.c{background:var(--c)}.bar.on.f{background:var(--f)}
+.msg{font-weight:700;margin:6px 0 10px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.chip{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:14px}
+.btn{border:0;border-radius:14px;background:var(--ok);color:#fff;font:inherit;font-weight:800;font-size:18px;padding:12px 18px;cursor:pointer;width:100%}
+.btn:disabled{background:var(--line);color:var(--muted);cursor:not-allowed}
+.btn.alt{background:var(--surface);color:var(--ink);border:2px solid var(--line);font-size:15px;width:auto;padding:8px 14px}
+.log-meal{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:8px}
+.log-meal b{display:block}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.left{min-width:0}
+.x{float:right;border:0;background:none;color:var(--muted);font:inherit;font-size:14px;cursor:pointer;text-decoration:underline;padding:0 0 0 8px}
+.btn.danger{border-color:var(--p);color:var(--p)}
+.strip{display:none}
+@media (min-width:700px){.layout{display:grid;grid-template-columns:1fr 260px;gap:18px;align-items:start}.plate{position:sticky;top:calc(12px + env(safe-area-inset-top,0px))}}
+@media (max-width:699px){.strip.has{display:block;position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);border:0;border-radius:999px;padding:10px 16px;font:inherit;font-weight:700;font-size:16px;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:pointer;z-index:5}main{padding-bottom:90px}}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+footer{margin-top:28px;text-align:center;color:var(--muted);font-size:13px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><h1>Build my plate</h1><button class="btn alt danger" id="clear2">Clear today</button></div>
+  <p class="sub" id="sub">Pick growing food and a fruit or veggie first, then sometimes foods unlock.</p>
+  <div class="tabs" id="tabs"></div>
+  <div id="view"></div>
+  <footer>kid-menu-v5</footer>
+</main>
+<div class="toast" id="toast" role="status"></div>
+<button class="strip" id="strip" aria-label="See my plate"></button>
+<script>
+// name, emoji, macros (p=protein, c=carbs/fiber, f=fat), type (g=growing food, d=dessert)
+var ITEMS=[
+["Milk","🥛","pc","g"],["Chocolate milk","🍫","pc","g"],["Yogurt cups + drinks","🥤","pc","g"],
+["Applesauce","🍎","c","v"],["Pineapple","🍍","c","v"],["Apples","🍏","c","v"],
+["Crispy peas","🫛","cp","v"],["Almonds","🌰","fc","g"],["Granola bar or bites","🥣","cf","g"],
+["Chicken stick","🍗","p","g"],["Chicken nuggets + strips","🍗","pc","g"],["Goldfish","🐟","cf","d"],["Z bar","🍪","cf","g"],
+["Fruit snacks","🍬","c","g"],["Protein bar","💪","pc","g"],["Chips","🥔","cf","d"],
+["Toast","🍞","c","g"],["Bagel + cream cheese","🥯","cf","g"],["PB + Nutella sandwich","🥪","cfp","g"],
+["Balanced Breaks","🧀","pfc","g"],
+["Cereal","🥣","c","d"],["Popsicle","🍧","c","d"],["Sour gummies","🍭","c","d"],["Candy","🍫","c","d"]
+];
+var NEED=2,NEEDV=1,MAXD=2; // growing foods and fruits/veggies needed before sometimes foods unlock
+var MEALS=["Breakfast","Lunch","Dinner"];
+var COLORS={p:"p",c:"c",f:"f"};
+var LABEL={p:"Protein",c:"Carbs + fiber",f:"Fat"};
+var meal="Breakfast",view="menu";
+var sel={Breakfast:[],Lunch:[],Dinner:[]};
+var log=[];
+var today=new Date().toISOString().slice(0,10);
+try{var s=JSON.parse(localStorage.getItem("kidmenu-log")||"{}");if(s.d===today)log=s.l||[];}catch(e){}
+function save(){try{localStorage.setItem("kidmenu-log",JSON.stringify({d:today,l:log}));}catch(e){}}
+function $(id){return document.getElementById(id)}
+function toast(t){var x=$("toast");x.textContent=t;x.className="toast show";setTimeout(function(){x.className="toast"},1800)}
+function growCount(m){return sel[m].filter(function(i){return ITEMS[i][3]=="g"}).length}
+function vegCount(m){return sel[m].filter(function(i){return ITEMS[i][3]=="v"}).length}
+function unlocked(m){return growCount(m)>=NEED&&vegCount(m)>=NEEDV}
+function dessCount(m){return sel[m].filter(function(i){return ITEMS[i][3]=="d"}).length}
+function toggle(i){
+  var a=sel[meal],k=a.indexOf(i);
+  if(k<0&&ITEMS[i][3]=="d"&&dessCount(meal)>=MAXD){toast("Only "+MAXD+" sometimes foods");return}
+  if(k>-1)a.splice(k,1);else a.push(i);
+  if(!unlocked(meal))sel[meal]=a.filter(function(j){return ITEMS[j][3]!="d"});
+  render();
+}
+function dots(m){return m.split("").map(function(x){return '<i class="'+COLORS[x]+'"></i>'}).join("")}
+function card(i,locked){
+  var it=ITEMS[i],on=sel[meal].indexOf(i)>-1;
+  var kind=it[3]=="d"?'<i class="d"></i>':dots(it[2]);
+  return '<button class="item" data-i="'+i+'" aria-pressed="'+on+'"'+(locked?' disabled':'')+'><span class="e">'+it[1]+'</span><span class="n">'+it[0]+'</span><span class="dots">'+kind+'</span></button>';
+}
+function menuView(){
+  var g=growCount(meal),v=vegCount(meal),open=unlocked(meal),dc=dessCount(meal),h="";
+  h+='<div class="legend"><span><span class="dot p"></span>Protein</span><span><span class="dot c"></span>Carbs + fiber</span><span><span class="dot f"></span>Fat</span><span><span class="dot d"></span>Sometimes food</span></div>';
+  h+='<h2>Growing food <span class="hint">pick at least '+NEED+'</span></h2><div class="grid">';
+  ITEMS.forEach(function(it,i){if(it[3]=="g")h+=card(i,false)});
+  h+='</div><h2>Fruits + veggies <span class="hint">pick at least '+NEEDV+'</span></h2><div class="grid">';
+  ITEMS.forEach(function(it,i){if(it[3]=="v")h+=card(i,false)});
+  h+='</div><h2>Sometimes foods <span class="hint">chips, crackers, treats</span></h2>';
+  h+='<div class="lock'+(open?' open':'')+'">'+(open?(dc>=MAXD?'That’s '+MAXD+' sometimes foods. Tap one to swap it out.':'Sometimes foods are unlocked! Pick up to '+MAXD+'.'):'Pick '+[g<NEED?(NEED-g)+' more growing food'+(NEED-g>1?'s':''):'',v<NEEDV?'1 fruit or veggie':''].filter(Boolean).join(' and ')+' to unlock.')+'</div><div class="grid">';
+  ITEMS.forEach(function(it,i){if(it[3]=="d")h+=card(i,!open||(dc>=MAXD&&sel[meal].indexOf(i)<0))});
+  h+='</div>';
+  h='<div class="layout"><div class="left">'+h+'</div>';var have={};sel[meal].forEach(function(i){ITEMS[i][3]!="d"&&ITEMS[i][2].split("").forEach(function(x){have[x]=1})});
+  var n=Object.keys(have).length;
+  var msg=sel[meal].length==0?"Your plate is empty. Tap some food!":n==3?"Wow, protein, carbs and fat. Super plate!":"Try adding "+["p","c","f"].filter(function(x){return !have[x]}).map(function(x){return LABEL[x].toLowerCase()}).join(" and ")+" to round it out.";
+  h+='<aside class="plate"><b>My '+meal.toLowerCase()+'</b>'+(sel[meal].length?'<button class="x" id="plateclear">Clear</button>':'')+'<div class="bars">'+["p","c","f"].map(function(x){return '<div class="bar '+x+(have[x]?' on':'')+'">'+LABEL[x]+'</div>'}).join("")+'</div><div class="msg">'+msg+'</div><div class="chips">'+sel[meal].map(function(i){return '<span class="chip">'+ITEMS[i][1]+' '+ITEMS[i][0]+'</span>'}).join("")+'</div><button class="btn" id="done"'+(open?'':' disabled')+'>I’m done, save my '+meal.toLowerCase()+'</button></aside></div>';
+  return h;
+}
+function logView(){
+  var h='<h2>Today’s meals</h2>';
+  if(!log.length)h+='<div class="lock">Nothing saved yet. Meals show up here after your kid taps save.</div>';
+  log.forEach(function(e,k){h+='<div class="log-meal"><button class="x" data-del="'+k+'">Remove</button><b>'+e.m+' · '+e.t+'</b>'+e.items.join(", ")+'</div>'});
+  h+='<div class="row"><button class="btn alt" id="copy">Copy as text</button><button class="btn alt danger" id="clear">Clear today</button></div>';
+  return h;
+}
+function render(){
+  $("tabs").innerHTML=MEALS.map(function(m){return '<button class="tab" data-m="'+m+'" aria-pressed="'+(view=="menu"&&meal==m)+'">'+m+'</button>'}).join("")+'<button class="tab" data-m="log" aria-pressed="'+(view=="log")+'">Log</button>';
+  $("sub").textContent=view=="log"?"For parents: what got picked today.":"Pick growing food and a fruit or veggie first, then sometimes foods unlock.";
+  $("view").innerHTML=view=="log"?logView():menuView();
+  var st=$("strip"),n=view=="menu"?sel[meal].length:0;
+  st.className="strip"+(n?" has":"");
+  st.textContent=n?sel[meal].map(function(i){return ITEMS[i][1]}).join(" ")+"  ·  "+n+" picked":"";
+}
+document.addEventListener("click",function(e){
+  var t=e.target.closest("button");if(!t)return;
+  if(t.dataset.m){if(t.dataset.m=="log")view="log";else{view="menu";meal=t.dataset.m}render();return}
+  if(t.dataset.i!==undefined){toggle(+t.dataset.i);return}
+  if(t.dataset.del!==undefined){log.splice(+t.dataset.del,1);save();render();return}
+  if(t.id=="plateclear"){sel[meal]=[];render();return}
+  if(t.id=="strip"){var pl=document.querySelector(".plate");if(pl)pl.scrollIntoView({behavior:"smooth",block:"center"});return}
+  if(t.id=="done"){
+    var now=new Date();
+    log.push({m:meal,t:now.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"}),items:sel[meal].map(function(i){return ITEMS[i][0]+(ITEMS[i][3]=="d"?" (sometimes)":"")})});
+    sel[meal]=[];save();toast("Saved! Yum.");render();
+  }
+  if(t.id=="copy"){
+    var txt=log.map(function(e){return e.m+" ("+e.t+"): "+e.items.join(", ")}).join("\n")||"Nothing saved yet.";
+    try{navigator.clipboard.writeText(txt).then(function(){toast("Copied")},function(){toast("Copy blocked")})}catch(x){toast("Copy blocked")}
+  }
+  if(t.id=="clear"||t.id=="clear2"){
+    if(!log.length&&!MEALS.some(function(m){return sel[m].length})){toast("Already clear");return}
+    if(t.dataset.arm){log=[];sel={Breakfast:[],Lunch:[],Dinner:[]};save();delete t.dataset.arm;t.textContent="Clear today";toast("Day cleared");render()}
+    else{t.dataset.arm="1";t.textContent="Tap again to clear";setTimeout(function(){if(t.isConnected){t.textContent="Clear today";delete t.dataset.arm}},3000)}
+  }
+});
+render();
+</script>
+</body>
+</html>
